@@ -1,7 +1,8 @@
 # BADlnk v1.1
 ## Author: github.com/thelinuxchoice/badlnk
 ## Twitter: twitter.com/linux_choice
-### Read the license before using any part from this code :) Reverse Shell in Shortcut File (.lnk)
+### Read the license before using any part from this code :)
+### Reverse Shell in Shortcut File (.lnk)
 
 ![bd](https://user-images.githubusercontent.com/34893261/79396149-a6753880-7f51-11ea-9c34-a53ec6cd1388.jpg)
 
